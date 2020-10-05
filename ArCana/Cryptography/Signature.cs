@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Org.BouncyCastle.Asn1.Sec;
@@ -51,7 +52,7 @@ namespace ArCana.Cryptography
 
         public static bool Verify(byte[] hash, byte[] signature, byte[] publicKey, byte[] publicKeyHash)
         {
-            if (!HashUtil.Hash160(publicKey).IsEqual(publicKeyHash)) return false;
+            if (!HashUtil.Hash160(publicKey).SequenceEqual(publicKeyHash)) return false;
             var (x, y) = JsonSerializer.Deserialize<Coordinate>(publicKey);
             var pubEcPoint = new ECPoint() { X = x, Y = y };
             var ecp = new ECParameters()
