@@ -43,12 +43,6 @@ namespace ArCana.Blockchain
         {
             _transaction.TimeStamp = DateTime.UtcNow;
             _transaction.Id = null;
-            foreach (var inEntry in Inputs)
-            {
-                inEntry.PublicKey = null;
-                inEntry.Signature = null;
-            }
-
             var hash = _transaction.GetSignHash();
             var signature = Signature.Sign(hash, privateKey, publicKey);
             foreach (var inEntry in Inputs)

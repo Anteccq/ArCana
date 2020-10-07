@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Org.BouncyCastle.Crypto.Digests;
 
@@ -29,5 +30,22 @@ namespace ArCana.Cryptography
         }
 
         public static byte[] Hash160(byte[] data) => RIPEMD160(SHA256(data));
+
+        public static byte[] ComputeMerkleRootHash(IList<byte[]> bytes)
+        {
+            while (true)
+            {
+                if (bytes.Count == 1) return bytes.First();
+
+                if (bytes.Count % 2 > 0) bytes.Add(bytes.Last());
+                var blanches = new List<byte[]>();
+                for (var i = 0; i < bytes.Count; i += 2)
+                {
+                    blanches.Add(DoubleSHA256Hash(bytes[i].Concat(bytes[i + 1]).ToArray()));
+                }
+
+                bytes = blanches;
+            }
+        }
     }
 }
