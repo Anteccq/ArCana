@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ArCana.Cryptography
 {
-    internal class Coordinate
+    public class Coordinate
     {
         public byte[] X { get; set; }
 
