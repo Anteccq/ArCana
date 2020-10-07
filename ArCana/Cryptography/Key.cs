@@ -15,7 +15,7 @@ namespace ArCana.Cryptography
         public Key()
         {
             (PrivateKey, PublicKey) = Signature.GenerateKeys();
-            PublicKeyHash = HashUtil.RIPEMD160(PublicKey);
+            PublicKeyHash = HashUtil.Hash160(PublicKey);
         }
     }
 }
