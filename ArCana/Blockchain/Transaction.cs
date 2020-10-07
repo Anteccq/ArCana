@@ -8,13 +8,20 @@ using static Utf8Json.JsonSerializer;
 
 namespace ArCana.Blockchain
 {
+    [MessagePack.MessagePackObject]
     public class Transaction
     {
+        [MessagePack.Key(0)]
         public HexString Id { get; set; }
+        [MessagePack.Key(1)]
         public DateTime TimeStamp { get; set; }
+        [MessagePack.Key(2)]
         public string Engraving { get; set; }
+        [MessagePack.Key(3)]
         public List<Output> Outputs { get; set; }
+        [MessagePack.Key(4)]
         public List<Input> Inputs { get; set; }
+        [MessagePack.Key(5)]
         public ulong TransactionFee { get; set; }
 
         public Transaction Clone()
@@ -35,17 +42,26 @@ namespace ArCana.Blockchain
         }
     }
 
+    [MessagePack.MessagePackObject]
     public class Output
     {
+        [MessagePack.Key(0)]
         public ulong Amount;
+
+        [MessagePack.Key(1)]
         public byte[] PublicKeyHash { get; set; }
     }
 
+    [MessagePack.MessagePackObject]
     public class Input
     {
+        [MessagePack.Key(0)]
         public HexString TransactionId { get; set; }
+        [MessagePack.Key(1)]
         public int OutputIndex { get; set; }
+        [MessagePack.Key(2)]
         public byte[] Signature { get; set; }
+        [MessagePack.Key(3)]
         public byte[] PublicKey { get; set; }
     }
 }

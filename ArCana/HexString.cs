@@ -2,14 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using MessagePack;
 
 namespace ArCana
 {
+    [MessagePackObject]
     public class HexString : IEquatable<HexString>
     {
         private string _string;
         private byte[] _bytes;
-
+        [IgnoreMember]
         public string String
         {
             get => _string;
@@ -19,7 +21,7 @@ namespace ArCana
                 _bytes = ToBytes(value);
             }
         }
-
+        [Key(0)]
         public byte[] Bytes
         {
             get => _bytes;
