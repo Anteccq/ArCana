@@ -18,5 +18,17 @@ namespace ArCana.Test
             var actual = string.Join("", hash.Select(x => $"{x:x2}"));
             actual.Is(ans);
         }
+
+        [Fact]
+        public void SHA256Test()
+        {
+            var ans = "7406e8de7d6e4fffc573daef05aefb8806e7790f55eab5576f31349743cca743";
+            var asciiByte =
+                Encoding.ASCII.GetBytes(
+                    "As Bitcoin relies on 80 byte header hashes, we want to have an example for that.");
+            var hash = HashUtil.SHA256(asciiByte);
+            var actual = string.Join("", hash.Select(x => $"{x:x2}"));
+            actual.Is(ans);
+        }
     }
 }
