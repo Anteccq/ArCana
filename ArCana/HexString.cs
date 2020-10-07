@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ArCana.Extensions;
 using MessagePack;
 
 namespace ArCana
@@ -28,7 +29,7 @@ namespace ArCana
             set
             {
                 _bytes = value;
-                _string = HexToString(value);
+                _string = value.ToHex();
             }
         }
 
@@ -52,9 +53,6 @@ namespace ArCana
             }
             return array;
         }
-
-        public static string HexToString(byte[] data) =>
-            string.Join("", data.Select(x => $"{x:X2}"));
 
         public bool Equals(HexString other)
             => !(other is null) && this.Bytes.SequenceEqual(other.Bytes);
