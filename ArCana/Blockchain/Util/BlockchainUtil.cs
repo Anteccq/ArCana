@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ArCana.Cryptography;
+using Utf8Json;
+using static Utf8Json.JsonSerializer;
 
 namespace ArCana.Blockchain.Util
 {
@@ -42,5 +44,17 @@ namespace ArCana.Blockchain.Util
 
         public static ulong GetSubsidy(int height) =>
             (ulong)50 >> height / CoinBaseInterval;
+
+        public static bool VerifyBlockchain(IList<Block> chain)
+        {
+            var isRight = chain.Take(chain.Count - 1).SkipWhile((block, i) =>
+            {
+                var hash = block.ComputeId();
+                var prevHash = chain[i + 1].PreviousBlockHash.Bytes;
+                return prevHash.SequenceEqual(hash);
+            }).Any();
+
+            return !isRight;
+        }
     }
 }
