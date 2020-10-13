@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ArCana.Blockchain.Util;
+using ArCana.Cryptography;
 using MessagePack;
+using static Utf8Json.JsonSerializer;
 
 namespace ArCana.Blockchain
 {
@@ -22,5 +25,15 @@ namespace ArCana.Blockchain
         public ulong Nonce { get; set; }
         [Key(6)]
         public List<Transaction> Transactions { get; set; }
+
+        public Block Clone() => CloneUtil.Clone(this);
+
+        public byte[] ComputeId()
+        {
+            var block = this.Clone();
+            block.Id = null;
+            var data = Serialize(block);
+            return HashUtil.DoubleSHA256Hash(data);
+        }
     }
 }
