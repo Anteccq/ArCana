@@ -48,6 +48,7 @@ namespace ArCana.Blockchain
                 Id = Id,
                 Bits = Bits,
                 PreviousBlockHash = PreviousBlockHash,
+                MerkleRootHash = MerkleRootHash,
                 Timestamp = Timestamp,
                 Nonce = Nonce
             };
