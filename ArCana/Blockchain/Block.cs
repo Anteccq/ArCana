@@ -8,6 +8,7 @@ using static Utf8Json.JsonSerializer;
 
 namespace ArCana.Blockchain
 {
+    [MessagePackObject]
     public class BlockHeader
     {
         [Key(0)]
