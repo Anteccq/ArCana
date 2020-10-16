@@ -37,9 +37,17 @@ namespace ArCana.Blockchain
 
         public byte[] ToTargetBytes()
         {
-            var target = (BigInteger)Math.Pow(2, 0xFF - Bits);
-            var bytes = target.ToByteArray(true, true);
-            return new byte[32 - bytes.Length].Concat(bytes).ToArray();
+            var byteLength = Bits / 8;
+            var bitLength = Bits % 8;
+            var bytes = new byte[32];
+            for (var i = 0; i < bytes.Length; i++)
+            {
+                if (i < byteLength) bytes[i] = 0x00;
+                else if (i == byteLength) bytes[i] = (byte)(Math.Pow(2, 8-bitLength) - 1);
+                else bytes[i] = 0xFF;
+            }
+
+            return bytes;
         }
 
         public static Difficulty CalculateNextDifficulty(Block lastBlock, DateTime firstDate)
