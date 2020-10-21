@@ -9,7 +9,17 @@ namespace ArCana.Blockchain
 {
     public class Blockchain
     {
+        public static Blockchain Instance { get; } = new Blockchain();
+
+        Blockchain(){}
+
         public List<Block> Chain { get; } = new List<Block>();
+        public event Action Applied;
+
+        public void BlockVerify(Block block)
+        {
+
+        }
 
         public bool CheckInput(Input input, byte[] hash, out Output prevOutTx)
         {
