@@ -78,7 +78,7 @@ namespace ArCana.Blockchain
             }
         }
 
-        IEnumerable<TransactionOutput> ToTxO(List<Output> outputs, HexString id)
+        static IEnumerable<TransactionOutput> ToTxO(List<Output> outputs, HexString id)
         {
             return outputs.Select((t, i) => new TransactionOutput()
             {
