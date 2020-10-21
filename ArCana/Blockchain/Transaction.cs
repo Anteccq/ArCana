@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using ArCana.Blockchain.Util;
 using ArCana.Cryptography;
+using Org.BouncyCastle.Utilities.Encoders;
 using Utf8Json;
 using static Utf8Json.JsonSerializer;
 
@@ -63,5 +64,12 @@ namespace ArCana.Blockchain
         public byte[] Signature { get; set; }
         [MessagePack.Key(3)]
         public byte[] PublicKey { get; set; }
+    }
+
+    public class TransactionOutput
+    {
+        public HexString TransactionId { get; set; }
+        public int OutIndex { get; set; }
+        public Output Output { get; set; }
     }
 }
