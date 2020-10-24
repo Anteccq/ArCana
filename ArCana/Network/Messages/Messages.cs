@@ -30,46 +30,55 @@ namespace ArCana.Network.Messages
             await SerializeAsync(stream, this);
         }
 
-        public async Task SendMessageAsync(IPEndPoint remotePoint) =>
+        public async Task SendAsync(IPEndPoint remotePoint) =>
             await SendAsync(remotePoint.Address, remotePoint.Port);
+
+        public static Message Create(MessageType type, byte[] data)
+        {
+            return new Message()
+            {
+                Type = type,
+                Payload = data
+            };
+        }
     }
 
-    public class HandShake : IMessage
+    public class HandShake
     {
         public List<string> KnowIpEndPoints { get; set; }
 
-        public Message ToMessage() => this.ToMessage(MessageType.HandShake);
+        public Message ToMessage() => Message.Create(MessageType.HandShake, Serialize(this));
     }
 
-    public class AddrPayload : IMessage
+    public class AddrPayload
     {
         public List<string> KnownIpEndPoints { get; set; }
 
-        public Message ToMessage() => this.ToMessage(MessageType.Addr);
+        public Message ToMessage() => Message.Create(MessageType.Addr, Serialize(this));
     }
 
-    public class Ping : IMessage
+    public class Ping
     {
-        public Message ToMessage() => this.ToMessage(MessageType.Ping);
+        public Message ToMessage() => Message.Create(MessageType.Ping, Serialize(this));
     }
 
-    public class SurfaceHandShake : IMessage
+    public class SurfaceHandShake
     {
-        public Message ToMessage() => this.ToMessage(MessageType.SurfaceHandShake);
+        public Message ToMessage() => Message.Create(MessageType.SurfaceHandShake, Serialize(this));
     }
 
-    public class NewTransaction : IMessage
+    public class NewTransaction
     {
         public Transaction Transaction { get; set; }
 
-        public Message ToMessage() => this.ToMessage(MessageType.NewTransaction);
+        public Message ToMessage() => Message.Create(MessageType.NewTransaction, Serialize(this));
 
     }
 
-    public class NewBlock : IMessage
+    public class NewBlock
     {
         public Block Block { get; set; }
 
-        public Message ToMessage() => this.ToMessage(MessageType.NewBlock);
+        public Message ToMessage() => Message.Create(MessageType.NewBlock, Serialize(this));
     }
 }
