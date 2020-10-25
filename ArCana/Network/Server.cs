@@ -18,7 +18,6 @@ namespace ArCana.Network
         private Task _listenTask;
 
         public event Func<Message, IPEndPoint, Task> MessageReceived;
-        public event Func<IPEndPoint, MessageType, Task> NewConnection;
 
         public Server(CancellationTokenSource tokenSource)
         {
@@ -52,7 +51,6 @@ namespace ArCana.Network
                         var endPoint = client.Client.RemoteEndPoint as IPEndPoint;
                         //if (endPoint.Address.ToString() == "127.0.0.1") continue;
                         var message = await JsonSerializer.DeserializeAsync<Message>(client.GetStream());
-                        await (NewConnection?.Invoke(endPoint, message.Type) ?? Task.CompletedTask);
                         await (MessageReceived?.Invoke(message, endPoint) ?? Task.CompletedTask);
                     }
                     catch (SocketException e)

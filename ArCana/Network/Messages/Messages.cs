@@ -47,6 +47,8 @@ namespace ArCana.Network.Messages
     {
         public List<string> KnowIpEndPoints { get; set; }
 
+        public int Port { get; set; }
+
         public Message ToMessage() => Message.Create(MessageType.HandShake, Serialize(this));
     }
 
