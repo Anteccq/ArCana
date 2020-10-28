@@ -17,7 +17,7 @@ namespace ArCana.Network
         public List<IPEndPoint> ConnectServers { get; } = new List<IPEndPoint>();
         public List<IPEndPoint> ConnectSurfaces { get; } = new List<IPEndPoint>();
         private Blockchain.Blockchain _blockchain = Blockchain.Blockchain.Instance;
-        private Miner _miner = Miner.Instance;
+        public int Port { get; private set; }
 
         public NetworkManager(CancellationToken token)
         {
@@ -27,7 +27,23 @@ namespace ArCana.Network
             token.Register(Dispose);
         }
 
-        public async Task StartServerAsync(int port) => await (_server?.StartAsync(port) ?? Task.CompletedTask);
+        public async Task StartServerAsync(int port)
+        {
+            Port = port;
+            await(_server?.StartAsync(port) ?? Task.CompletedTask);
+        }
+
+
+        public async Task ConnectAsync(IPEndPoint endPoint)
+        {
+            if(!_server.IsOpen) throw new SocketException();
+            await new HandShake()
+                {
+                    Port = Port,
+                    KnowIpEndPoints = new List<string>()
+                }
+                .ToMessage().SendAsync(endPoint, Port);
+        }
 
         async Task MessageHandle(IPEndPoint endPoint, Message msg)
         {
@@ -43,7 +59,7 @@ namespace ArCana.Network
                 {
                     KnownIpEndPoints = ConnectServers.Where(x => !x.Equals(serverEndPoint)).Select(x => x.ToString()).ToList()
                 }
-                .ToMessage().SendAsync(serverEndPoint);
+                .ToMessage().SendAsync(serverEndPoint, Port);
             
             var ipEndPoints = msg.KnowIpEndPoints.Select(CreateIPEndPoint).Except(ConnectServers);
             lock (ConnectServers)
@@ -55,7 +71,12 @@ namespace ArCana.Network
 
         async Task AddrHandle(AddrPayload msg)
         {
-            var ipEndPoints = msg.KnownIpEndPoints.Select(CreateIPEndPoint).Except(ConnectServers);
+            var ipEndPoints = 
+                msg.KnownIpEndPoints
+                    .Select(CreateIPEndPoint)
+                    .Except(ConnectServers)
+                    .ToList();
+            await BroadCastIPEndPoints(ipEndPoints);
             lock (ConnectServers)
             {
                 ConnectServers.AddRange(ipEndPoints);
@@ -71,14 +92,38 @@ namespace ArCana.Network
                 msg.KnownIpEndPoints = endPointList.Where(x => !x.Equals(ep)).Select(x => x.ToString()).ToList();
                 try
                 {
-                    await msg.ToMessage().SendAsync(ep);
+                    await msg.ToMessage().SendAsync(ep, Port);
                 }
                 catch (SocketException)
                 {
                     dcList.Add(ep);
                 }
             }
-            ConnectServers.RemoveAll(dcList.Contains);
+            lock (ConnectServers)
+            {
+                ConnectServers.RemoveAll(dcList.Contains);
+            }
+        }
+
+        async Task BroadCastMessageAsync(Message msg)
+        {
+            var dcList = new List<IPEndPoint>();
+            foreach (var ep in ConnectServers)
+            {
+                try
+                {
+                    await msg.SendAsync(ep, Port);
+                }
+                catch (SocketException)
+                {
+                    dcList.Add(ep);
+                }
+            }
+
+            lock (ConnectServers)
+            {
+                ConnectServers.RemoveAll(dcList.Contains);
+            }
         }
 
         public static IPEndPoint CreateIPEndPoint(string endPoint)

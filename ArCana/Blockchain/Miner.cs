@@ -10,8 +10,6 @@ namespace ArCana.Blockchain
 {
     public class Miner
     {
-        public static Miner Instance { get; } = new Miner();
-
         public byte[] MinerPublicKeyHash { get; set; }
 
         public static bool Mine(Block block, CancellationToken token)

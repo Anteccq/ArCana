@@ -17,6 +17,8 @@ namespace ArCana.Network
         public CancellationToken Token { get; }
         private Task _listenTask;
 
+        public bool IsOpen { get; private set; } = false;
+
         public event Func<Message, IPEndPoint, Task> MessageReceived;
 
         public Server(CancellationTokenSource tokenSource)
@@ -41,6 +43,7 @@ namespace ArCana.Network
             var tcs = new TaskCompletionSource<int>();
             await using (Token.Register(tcs.SetCanceled))
             {
+                IsOpen = true;
                 while (!Token.IsCancellationRequested)
                 {
                     var t = _listener.AcceptTcpClientAsync();
@@ -53,12 +56,13 @@ namespace ArCana.Network
                         var message = await JsonSerializer.DeserializeAsync<Message>(client.GetStream());
                         await (MessageReceived?.Invoke(message, endPoint) ?? Task.CompletedTask);
                     }
-                    catch (SocketException e)
+                    catch (SocketException)
                     {
                     }
                 }
             }
             _listener.Stop();
+            IsOpen = false;
         }
 
         public void Dispose()

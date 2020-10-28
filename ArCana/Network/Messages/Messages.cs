@@ -17,9 +17,12 @@ namespace ArCana.Network.Messages
 
         public virtual byte[] Payload { get; set; }
 
-        public async Task SendAsync(IPAddress remoteAddress, int port)
+        public int Port { get; set; }
+
+        public async Task SendAsync(IPAddress remoteAddress, int port, int localPort)
         {
-            var timeOut = 3000;
+            this.Port = localPort;
+            var timeOut = 1000;
             using var client = new TcpClient()
             {
                 SendTimeout = timeOut,
@@ -30,8 +33,8 @@ namespace ArCana.Network.Messages
             await SerializeAsync(stream, this);
         }
 
-        public async Task SendAsync(IPEndPoint remotePoint) =>
-            await SendAsync(remotePoint.Address, remotePoint.Port);
+        public async Task SendAsync(IPEndPoint remotePoint, int localPort) =>
+            await SendAsync(remotePoint.Address, remotePoint.Port, localPort);
 
         public static Message Create(MessageType type, byte[] data)
         {
