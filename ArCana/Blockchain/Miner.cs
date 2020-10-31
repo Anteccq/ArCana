@@ -94,6 +94,7 @@ namespace ArCana.Blockchain
 
             if (!Mine(mineBlock, token)) return false;
 
+            mineBlock.Transactions = txList;
             block = mineBlock;
             return true;
         }
