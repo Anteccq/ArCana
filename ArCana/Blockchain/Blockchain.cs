@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ArCana.Blockchain.Util;
 using ArCana.Cryptography;
 using Utf8Json;
 
@@ -9,7 +10,7 @@ namespace ArCana.Blockchain
 {
     public class Blockchain
     {
-        public List<Block> Chain { get; } = new List<Block>();
+        public List<Block> Chain { get; } = new List<Block>(){ BlockchainUtil.CreateGenesisBlock() };
         public List<TransactionOutput> Utxos { get; } = new List<TransactionOutput>();
         public TransactionPool TransactionPool { get; set; }
         public event Action Applied;

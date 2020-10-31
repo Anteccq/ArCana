@@ -26,6 +26,7 @@ namespace ArCana.Blockchain
 
         public static bool Mine(Block block, CancellationToken token)
         {
+            block.Id = null;
             var rnd = new Random();
             var buf = new byte[sizeof(ulong)];
             rnd.NextBytes(buf);
