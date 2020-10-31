@@ -41,7 +41,7 @@ namespace ArCana.Blockchain
             _blockchain.BlockVerify(block);
         }
 
-        async Task ReceiveFullChain(Message msg, IPEndPoint endPoint)
+        public async Task ReceiveFullChain(Message msg, IPEndPoint endPoint)
         {
             var chain = Deserialize<List<Block>>(msg.Payload);
             if (chain.Any(block => !ValidCheck(block)) || !Blockchain.VerifyBlockchain(chain)) return;
@@ -53,7 +53,12 @@ namespace ArCana.Blockchain
             }
         }
 
-        async Task SendFullChain(IPEndPoint endPoint, int localPort)
+        public async Task NewTransactionHandle(NewTransaction msg)
+        {
+            _blockchain.TransactionPool.AddTxs(msg.Transaction);
+        }
+
+        public async Task SendFullChain(IPEndPoint endPoint, int localPort)
         {
             var blockMsg = new Message()
             {

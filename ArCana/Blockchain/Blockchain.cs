@@ -157,7 +157,7 @@ namespace ArCana.Blockchain
             return true;
         }
 
-        public ulong CalculateFee(Transaction tx, ulong coinbase)
+        public ulong CalculateFee(Transaction tx, ulong coinbase=0)
         {
             var chainTxs = Chain.SelectMany(x => x.Transactions);
             //var outputs = tx.Inputs.Select(x => x.TransactionId).Select(x => chainTxs.First(cTx => cTx.Id.Equals(x)).Outputs);
@@ -205,6 +205,14 @@ namespace ArCana.Blockchain
                 }
             }).Any();
             return !isRight;
+        }
+
+        public uint GetDifficulty()
+        {
+            var last = Chain.Last();
+            return Chain.Count < Difficulty.DifInterval
+                ? last.Bits
+                : Difficulty.CalculateNextDifficulty(last, Chain[^Difficulty.DifInterval].Timestamp).Bits;
         }
     }
 }

@@ -15,6 +15,7 @@ namespace ArCana.Network
         private Surface _surface;
         private Timer _timer;
         private readonly CancellationToken _token;
+        public int Port { get; set; }
 
         public SurfaceManager(CancellationToken token)
         {
@@ -25,13 +26,17 @@ namespace ArCana.Network
             _token.Register(_surface.Dispose);
         }
 
-        public void StartSurface(int port) => _surface.Start(port);
+        public void StartSurface(int port)
+        {
+            Port = port;
+            _surface.Start(port);
+        }
 
         async Task ConnectionCheckAsync()
         {
             try
             {
-                await new Ping().ToMessage().SendAsync(_serverEndPoint);
+                await new Ping().ToMessage().SendAsync(_serverEndPoint, Port);
             }
             catch (SocketException)
             {
@@ -47,7 +52,7 @@ namespace ArCana.Network
         {
             try
             {
-                await new SurfaceHandShake().ToMessage().SendAsync(serverEndPoint);
+                await new SurfaceHandShake().ToMessage().SendAsync(serverEndPoint, Port);
                 _serverEndPoint = serverEndPoint;
                 _timer = new Timer(async _ => await ConnectionCheckAsync(), null,
                     TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));

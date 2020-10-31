@@ -11,7 +11,7 @@ namespace ArCana.Blockchain
         public const uint MaxDifficultBits = 64;
         public const uint MinDifficultBits = 17;
 
-        private const int DifInterval = 100;
+        public const int DifInterval = 100;
         private static readonly TimeSpan TargetTime = TimeSpan.FromMinutes(10);
 
         private uint _bits = MinDifficultBits;

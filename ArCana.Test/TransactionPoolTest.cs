@@ -12,7 +12,7 @@ namespace ArCana.Test
         [Fact]
         public void AddTxsTest()
         {
-            var tp = TransactionPool.Instance;
+            var tp = new TransactionPool();
             tp.MemPool.Clear();
             var tb = new TransactionBuilder();
             var firstTx = tb.ToTransaction();
@@ -28,7 +28,7 @@ namespace ArCana.Test
         [Fact]
         public void RemoveTxsTest()
         {
-            var tp = TransactionPool.Instance;
+            var tp = new TransactionPool();
             tp.MemPool.Clear();
             var tb = new TransactionBuilder();
             var firstTx = tb.ToTransaction();

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ArCana.Blockchain;
 using ArCana.Network.Messages;
+using static Utf8Json.JsonSerializer;
 
 namespace ArCana.Network
 {
@@ -21,7 +22,7 @@ namespace ArCana.Network
 
         public NetworkManager(CancellationToken token) : this(token, new BlockchainManager())
         {
-
+            
         }
 
         public NetworkManager(CancellationToken token, BlockchainManager bm)
@@ -49,9 +50,22 @@ namespace ArCana.Network
                 .ToMessage().SendAsync(endPoint, Port);
         }
 
-        async Task MessageHandle(IPEndPoint endPoint, Message msg)
+        Task MessageHandle(IPEndPoint endPoint, Message msg)
         {
-
+            return msg.Type switch
+            {
+                MessageType.HandShake => HandShakeHandle(endPoint,Deserialize<HandShake>(msg.Payload)),
+                MessageType.Addr => AddrHandle(Deserialize<AddrPayload>(msg.Payload)),
+                MessageType.Inventory => Task.CompletedTask,
+                MessageType.NewTransaction => BlockchainManager.NewTransactionHandle(Deserialize<NewTransaction>(msg.Payload)),
+                MessageType.NewBlock => BlockchainManager.NewBlockHandle(Deserialize<NewBlock>(msg.Payload), endPoint, Port),
+                MessageType.FullChain => BlockchainManager.ReceiveFullChain(msg, endPoint),
+                MessageType.RequestFullChain => BlockchainManager.SendFullChain(endPoint, Port),
+                MessageType.Notice => Task.CompletedTask,
+                MessageType.Ping => Task.CompletedTask,
+                MessageType.SurfaceHandShake => Task.CompletedTask,
+                _ => Task.CompletedTask
+            };
         }
 
         async Task HandShakeHandle(IPEndPoint endPoint, HandShake msg)
