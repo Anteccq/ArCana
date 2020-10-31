@@ -13,13 +13,23 @@ namespace ArCana.Blockchain
 {
     public class BlockchainManager
     {
-        private Blockchain Blockchain { get; } = Blockchain.Instance;
+        private Blockchain _blockchain { get; set; }
+
+        public BlockchainManager() : this(new Blockchain())
+        {
+
+        }
+
+        public BlockchainManager(Blockchain blockchain)
+        {
+            _blockchain = blockchain;
+        }
 
         public async Task NewBlockHandle(NewBlock msg, IPEndPoint endPoint, int localPort)
         {
             var block = msg.Block;
             if(!ValidCheck(block)) return;
-            var lastBlock = Blockchain.Chain.Last();
+            var lastBlock = _blockchain.Chain.Last();
             if (!lastBlock.Id.Equals(block.PreviousBlockHash))
             {
                 var req = new Message()
@@ -28,7 +38,7 @@ namespace ArCana.Blockchain
                     Payload = new byte[] {0}
                 }.SendAsync(endPoint, localPort);
             }
-            Blockchain.BlockVerify(block);
+            _blockchain.BlockVerify(block);
         }
 
         async Task ReceiveFullChain(Message msg, IPEndPoint endPoint)
@@ -36,10 +46,10 @@ namespace ArCana.Blockchain
             var chain = Deserialize<List<Block>>(msg.Payload);
             if (chain.Any(block => !ValidCheck(block)) || !Blockchain.VerifyBlockchain(chain)) return;
             var diff = (ulong)chain.Sum(x => x.Bits);
-            var localDiff = (ulong)Blockchain.Chain.Sum(x => x.Bits);
+            var localDiff = (ulong)_blockchain.Chain.Sum(x => x.Bits);
             if (diff > localDiff)
             {
-                Blockchain.ChainApply(chain);
+                _blockchain.ChainApply(chain);
             }
         }
 
@@ -48,7 +58,7 @@ namespace ArCana.Blockchain
             var blockMsg = new Message()
             {
                 Type = MessageType.FullChain,
-                Payload = Serialize(Blockchain.Chain)
+                Payload = Serialize(_blockchain.Chain)
             };
             await blockMsg.SendAsync(endPoint, localPort);
         }

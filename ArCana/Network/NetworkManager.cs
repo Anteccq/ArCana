@@ -16,14 +16,19 @@ namespace ArCana.Network
         private Server _server;
         public List<IPEndPoint> ConnectServers { get; } = new List<IPEndPoint>();
         public List<IPEndPoint> ConnectSurfaces { get; } = new List<IPEndPoint>();
-        private Blockchain.Blockchain _blockchain = Blockchain.Blockchain.Instance;
+        public BlockchainManager BlockchainManager { get; set; }
         public int Port { get; private set; }
 
-        public NetworkManager(CancellationToken token)
+        public NetworkManager(CancellationToken token) : this(token, new BlockchainManager())
+        {
+
+        }
+
+        public NetworkManager(CancellationToken token, BlockchainManager bm)
         {
             var tokenSource = new CancellationTokenSource();
             _server = new Server(tokenSource);
-
+            BlockchainManager = bm;
             token.Register(Dispose);
         }
 
@@ -32,7 +37,6 @@ namespace ArCana.Network
             Port = port;
             await(_server?.StartAsync(port) ?? Task.CompletedTask);
         }
-
 
         public async Task ConnectAsync(IPEndPoint endPoint)
         {
@@ -52,19 +56,18 @@ namespace ArCana.Network
 
         async Task HandShakeHandle(IPEndPoint endPoint, HandShake msg)
         {
-            var serverEndPoint = new IPEndPoint(endPoint.Address, msg.Port);
-            if(ConnectServers.Contains(serverEndPoint)) return;
+            if(ConnectServers.Contains(endPoint)) return;
             //相手の endpoint を除外して送信する。
             await new AddrPayload()
                 {
-                    KnownIpEndPoints = ConnectServers.Where(x => !x.Equals(serverEndPoint)).Select(x => x.ToString()).ToList()
+                    KnownIpEndPoints = ConnectServers.Where(x => !x.Equals(endPoint)).Select(x => x.ToString()).ToList()
                 }
-                .ToMessage().SendAsync(serverEndPoint, Port);
+                .ToMessage().SendAsync(endPoint, Port);
             
             var ipEndPoints = msg.KnowIpEndPoints.Select(CreateIPEndPoint).Except(ConnectServers);
             lock (ConnectServers)
             {
-                if (!ConnectServers.Contains(serverEndPoint)) ConnectServers.Add(serverEndPoint);
+                if (!ConnectServers.Contains(endPoint)) ConnectServers.Add(endPoint);
                 ConnectServers.AddRange(ipEndPoints);
             }
         }

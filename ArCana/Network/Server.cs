@@ -51,10 +51,11 @@ namespace ArCana.Network
                     try
                     {
                         using var client = t.Result;
-                        var endPoint = client.Client.RemoteEndPoint as IPEndPoint;
+                        if(!(client.Client.RemoteEndPoint is IPEndPoint endPoint)) return;
                         //if (endPoint.Address.ToString() == "127.0.0.1") continue;
                         var message = await JsonSerializer.DeserializeAsync<Message>(client.GetStream());
-                        await (MessageReceived?.Invoke(message, endPoint) ?? Task.CompletedTask);
+                        var serverEndPoint = new IPEndPoint(endPoint.Address, message.Port);
+                        await (MessageReceived?.Invoke(message, serverEndPoint) ?? Task.CompletedTask);
                     }
                     catch (SocketException)
                     {

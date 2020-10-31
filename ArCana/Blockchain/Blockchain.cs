@@ -9,15 +9,17 @@ namespace ArCana.Blockchain
 {
     public class Blockchain
     {
-        public static Blockchain Instance { get; } = new Blockchain();
-
-        public TransactionPool TransactionPool { get; } = TransactionPool.Instance;
-
-        Blockchain(){}
-
         public List<Block> Chain { get; } = new List<Block>();
         public List<TransactionOutput> Utxos { get; } = new List<TransactionOutput>();
+        public TransactionPool TransactionPool { get; set; }
         public event Action Applied;
+
+        public Blockchain() : this(new TransactionPool()){}
+
+        public Blockchain(TransactionPool transactionPool)
+        {
+            TransactionPool = transactionPool;
+        }
 
         public void BlockVerify(Block block)
         {

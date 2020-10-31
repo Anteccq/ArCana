@@ -7,11 +7,7 @@ namespace ArCana.Blockchain
 {
     public class TransactionPool
     {
-        public static TransactionPool Instance = new TransactionPool();
-
         public List<Transaction> MemPool { get; } = new List<Transaction>();
-
-        TransactionPool(){ }
 
         public Transaction[] GetPool() =>
             MemPool.ToArray();
