@@ -13,7 +13,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{9047
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KeyGenerate", "samples\KeyGenerate\KeyGenerate.csproj", "{AF4906D3-C249-4434-B1CF-F768EBD2A001}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateGenesis", "samples\CreateGenesis\CreateGenesis.csproj", "{07483A85-4A7B-4511-836D-515E772DEF82}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CreateGenesis", "samples\CreateGenesis\CreateGenesis.csproj", "{07483A85-4A7B-4511-836D-515E772DEF82}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenerateBlock", "samples\GenerateBlock\GenerateBlock.csproj", "{D64BEFCD-D66C-4E7E-BB30-0E7BBC5BC326}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,10 @@ Global
 		{07483A85-4A7B-4511-836D-515E772DEF82}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07483A85-4A7B-4511-836D-515E772DEF82}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07483A85-4A7B-4511-836D-515E772DEF82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D64BEFCD-D66C-4E7E-BB30-0E7BBC5BC326}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D64BEFCD-D66C-4E7E-BB30-0E7BBC5BC326}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D64BEFCD-D66C-4E7E-BB30-0E7BBC5BC326}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D64BEFCD-D66C-4E7E-BB30-0E7BBC5BC326}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -49,6 +55,7 @@ Global
 		{E3244D73-8775-4DFE-9084-4C8977FEA1A8} = {904779D2-0365-43B6-80D4-904F7710589A}
 		{AF4906D3-C249-4434-B1CF-F768EBD2A001} = {904779D2-0365-43B6-80D4-904F7710589A}
 		{07483A85-4A7B-4511-836D-515E772DEF82} = {904779D2-0365-43B6-80D4-904F7710589A}
+		{D64BEFCD-D66C-4E7E-BB30-0E7BBC5BC326} = {904779D2-0365-43B6-80D4-904F7710589A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C82BFC6A-CA17-4CD9-9592-E5C14BFA5CD2}
