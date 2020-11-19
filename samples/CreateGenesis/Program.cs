@@ -34,6 +34,7 @@ namespace CreateGenesis
 
             //Always True
             Console.WriteLine(Miner.HashCheck(block.ComputeId(), Difficulty.ToTargetBytes(block.Bits)));
+            Console.WriteLine( block.Id.Equals(block.ComputeId().ToHexString()) );
         }
 
         public static bool MineGenesis(Block block, CancellationToken token)

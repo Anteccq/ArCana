@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ArCana.Blockchain;
 using ArCana.Blockchain.Util;
 using ArCana.Cryptography;
+using ArCana.Extensions;
+using Utf8Json;
 
 namespace GenerateBlock
 {
@@ -50,7 +53,13 @@ namespace GenerateBlock
                 },
                 Bits = Difficulty.MinDifficultBits
             };
-            Console.WriteLine(block.Timestamp);
+            block.MerkleRootHash = HashUtil.ComputeMerkleRootHash(block.Transactions);
+            Console.WriteLine(block.MerkleRootHash.ToHex());
+
+            var genesis = BlockchainUtil.CreateGenesisBlock();
+            var blockData = JsonSerializer.Serialize(genesis);
+            var json = JsonSerializer.PrettyPrint(blockData);
+            Console.WriteLine(json);
         }
     }
 }
