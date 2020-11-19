@@ -15,23 +15,28 @@ namespace ArCana.Blockchain.Util
 
         public static Block CreateGenesisBlock()
         {
-            var tx = CreateCoinBaseTransaction(0, null, "ArC - A Little BlockChain by C#");
-            tx.TimeStamp = GenesisTime;
-            var txs = new List<Transaction> { tx };
+            var time = new DateTime(2020, 10, 31, 1, 50, 0, DateTimeKind.Utc);
+            var tx = CreateCoinBaseTransaction(0, null, time, "Haloween - ArCana");
+            tx.TimeStamp = time;
+            var txs = new List<Transaction>() { tx };
             var rootHash = HashUtil.ComputeMerkleRootHash(txs.Select(x => x.Id.Bytes).ToList());
 
             return new Block()
             {
+                Id = new HexString("00006D930177AA974CFBA170357D202AEB22BDA7CEA348F93DF9AD9326776843"),
                 PreviousBlockHash = new HexString(""),
-                Nonce = 2083236893,
+                Nonce = 8528990852057875687,
                 Transactions = txs,
                 MerkleRootHash = rootHash,
-                Timestamp = GenesisTime,
-                Bits = 17
+                Timestamp = time,
+                Bits = 17,
             };
         }
 
         public static Transaction CreateCoinBaseTransaction(int height, byte[] publicKeyHash, string engrave = "")
+            => CreateCoinBaseTransaction(height, publicKeyHash, DateTime.UtcNow, engrave);
+
+        public static Transaction CreateCoinBaseTransaction(int height, byte[] publicKeyHash, DateTime time, string engrave = "")
         {
             var cbOut = new Output()
             {
@@ -39,7 +44,7 @@ namespace ArCana.Blockchain.Util
                 PublicKeyHash = publicKeyHash
             };
             var tb = new TransactionBuilder(new List<Output>() { cbOut }, new List<Input>(), engrave);
-            return tb.ToTransaction();
+            return tb.ToTransaction(time);
         }
 
         public static ulong GetSubsidy(int height) =>

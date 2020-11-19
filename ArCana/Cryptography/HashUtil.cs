@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ArCana.Blockchain;
 using Org.BouncyCastle.Crypto.Digests;
 
 namespace ArCana.Cryptography
@@ -30,6 +31,9 @@ namespace ArCana.Cryptography
         }
 
         public static byte[] Hash160(byte[] data) => RIPEMD160(SHA256(data));
+
+        public static byte[] ComputeMerkleRootHash(IList<Transaction> txs) =>
+            ComputeMerkleRootHash(txs.Select(x => x.Id.Bytes).ToList());
 
         public static byte[] ComputeMerkleRootHash(IList<byte[]> bytes)
         {

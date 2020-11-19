@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ArCana.Blockchain.Util;
 using ArCana.Cryptography;
 using Utf8Json;
 
@@ -9,15 +10,17 @@ namespace ArCana.Blockchain
 {
     public class Blockchain
     {
-        public static Blockchain Instance { get; } = new Blockchain();
-
-        public TransactionPool TransactionPool { get; } = TransactionPool.Instance;
-
-        Blockchain(){}
-
-        public List<Block> Chain { get; } = new List<Block>();
+        public List<Block> Chain { get; } = new List<Block>(){ BlockchainUtil.CreateGenesisBlock() };
         public List<TransactionOutput> Utxos { get; } = new List<TransactionOutput>();
+        public TransactionPool TransactionPool { get; set; }
         public event Action Applied;
+
+        public Blockchain() : this(new TransactionPool()){}
+
+        public Blockchain(TransactionPool transactionPool)
+        {
+            TransactionPool = transactionPool;
+        }
 
         public void BlockVerify(Block block)
         {
@@ -54,28 +57,27 @@ namespace ArCana.Blockchain
 
         void LockedChainApply(List<Block> newChain)
         {
+            var localTxs = Chain.SelectMany(x => x.Transactions);
+            var remoteTxs = newChain.SelectMany(x => x.Transactions);
+            var txNotIncludeRemote =
+                localTxs.Where(tx => !remoteTxs.Any(x => x.Id.Equals(tx.Id))).ToArray();
+
+            lock (TransactionPool)
             {
-                var localTxs = Chain.SelectMany(x => x.Transactions);
-                var remoteTxs = newChain.SelectMany(x => x.Transactions);
-                var txNotIncludeRemote =
-                    localTxs.Where(tx => !remoteTxs.Any(x => x.Id.Equals(tx.Id))).ToArray();
-
-                lock (TransactionPool)
-                {
-                    var txIds = TransactionPool.GetPool().Select(x => x.Id)
-                        .Where(x => remoteTxs.Any(tx => x.Equals(tx.Id))).ToArray();
-                    TransactionPool.RemoveTxs(txIds);
-                    TransactionPool.AddTxs(txNotIncludeRemote);
-                }
-
-                lock (Chain)
-                {
-                    Chain.Clear();
-                    Chain.AddRange(newChain);
-                }
-
-                UpdateUtxos();
+                var txIds = TransactionPool.GetPool().Select(x => x.Id)
+                    .Where(x => remoteTxs.Any(tx => x.Equals(tx.Id))).ToArray();
+                TransactionPool.RemoveTxs(txIds);
+                TransactionPool.AddTxs(txNotIncludeRemote);
             }
+
+            lock (Chain)
+            {
+                Chain.Clear();
+                Chain.AddRange(newChain);
+            }
+
+            UpdateUtxos();
+            Applied?.Invoke();
         }
 
         static IEnumerable<TransactionOutput> ToTxO(List<Output> outputs, HexString id)
@@ -156,7 +158,7 @@ namespace ArCana.Blockchain
             return true;
         }
 
-        public ulong CalculateFee(Transaction tx, ulong coinbase)
+        public ulong CalculateFee(Transaction tx, ulong coinbase=0)
         {
             var chainTxs = Chain.SelectMany(x => x.Transactions);
             //var outputs = tx.Inputs.Select(x => x.TransactionId).Select(x => chainTxs.First(cTx => cTx.Id.Equals(x)).Outputs);
@@ -167,6 +169,51 @@ namespace ArCana.Blockchain
             var outSum = tx.Outputs.Select(x => x.Amount).Aggregate((a, b) => a + b);
             if(outSum > inSum) throw new ArgumentException();
             return inSum - outSum;
+        }
+
+        public bool VerifyBlockchain()
+        {
+            /*var i = 0;
+            while (i < Blockchain.Count)
+            {
+                var rearData = JsonSerializer.Serialize(Blockchain[i]);
+                var prevHash = Blockchain[i + 1].PreviousBlockHash.Bytes;
+                if (prevHash != HashUtil.DoubleSHA256(rearData)) return false;
+                i++;
+            }*/
+
+            var isRight = Chain.Take(Chain.Count - 1).SkipWhile((block, i) =>
+            {
+                var hash = block.ComputeId();
+                var prevHash = Chain[i + 1].PreviousBlockHash.Bytes;
+                return prevHash.SequenceEqual(hash);
+            }).Any();
+
+            return !isRight;
+        }
+
+        public static bool VerifyBlockchain(IList<Block> blockchain)
+        {
+            var isRight = blockchain.Take(blockchain.Count - 1).SkipWhile((block, i) =>
+            {
+                try
+                {
+                    return !blockchain[i + 1].PreviousBlockHash.Bytes.SequenceEqual(block.ComputeId());
+                }
+                catch
+                {
+                    return false;
+                }
+            }).Any();
+            return !isRight;
+        }
+
+        public uint GetDifficulty()
+        {
+            var last = Chain.Last();
+            return Chain.Count < Difficulty.DifInterval
+                ? last.Bits
+                : Difficulty.CalculateNextDifficulty(last, Chain[^Difficulty.DifInterval].Timestamp).Bits;
         }
     }
 }
