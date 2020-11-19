@@ -6,12 +6,25 @@
     <Company />
     <Product>ArCana</Product>
     <Description>Simple Blockchain Library</Description>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/AntiquePendulum/ArCana</PackageProjectUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="DLL\**" />
     <EmbeddedResource Remove="DLL\**" />
     <None Remove="DLL\**" />
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
