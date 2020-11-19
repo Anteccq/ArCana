@@ -6,11 +6,37 @@
     <Company />
     <Product>ArCana</Product>
     <Description>Simple Blockchain Library</Description>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/AntiquePendulum/ArCana</PackageProjectUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DLL\**" />
+    <EmbeddedResource Remove="DLL\**" />
+    <None Remove="DLL\**" />
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MessagePack" Version="2.2.60" />
+    <PackageReference Include="MessagePackAnalyzer" Version="2.2.60" />
     <PackageReference Include="Utf8Json" Version="1.3.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto">
+      <HintPath>DLL\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
