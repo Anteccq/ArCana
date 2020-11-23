@@ -116,7 +116,7 @@ namespace ArCana.Blockchain
         {
             var transactions = Chain.SelectMany(x => x.Transactions).ToArray();
             prevOutTx = transactions
-                .First(x => x.Id.Bytes == input.TransactionId.Bytes)?
+                .First(x => x.Id.Equals(input.TransactionId))?
                 .Outputs[input.OutputIndex];
             var verified = prevOutTx != null && Signature.Verify(hash, input.Signature, input.PublicKey, prevOutTx.PublicKeyHash);
 
