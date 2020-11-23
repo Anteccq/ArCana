@@ -61,7 +61,6 @@ namespace TestApp
             blockchain.BlockVerify(block);
 
             var ok = blockchain.VerifyTransaction(tx, block2.Timestamp, false);
-            Console.WriteLine(ok);
 
             var target = Difficulty.ToTargetBytes(1);
             Console.WriteLine(target.ToHex());
