@@ -128,14 +128,13 @@ namespace ArCana.Blockchain
 
             var redeemable = prevOutTx != null && prevOutTx.PublicKeyHash.SequenceEqual(HashUtil.Hash160(input.PublicKey));
 
-
             return verified && !utxoUsed && redeemable;
         }
 
         public static bool VerifyTransaction(Transaction tx, DateTime timestamp, IReadOnlyList<Block> chain, bool isCoinbase, ulong coinbase = 0)
         {
             if (tx.TimeStamp > timestamp ||
-                !(isCoinbase ^ tx.Inputs.Count == 0))
+                (!isCoinbase & tx.Inputs.Count == 0))
                 return false;
 
             var hash = tx.GetSignHash();
@@ -143,7 +142,7 @@ namespace ArCana.Blockchain
             var inSum = coinbase;
             foreach (var input in tx.Inputs)
             {
-                if (CheckInput(input, hash, chain, out var prevOutTx)) return false;
+                if (!CheckInput(input, hash, chain, out var prevOutTx)) return false;
                 inSum = checked(inSum + prevOutTx.Amount);
             }
 
