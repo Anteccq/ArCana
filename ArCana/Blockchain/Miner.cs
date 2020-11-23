@@ -65,7 +65,7 @@ namespace ArCana.Blockchain
 
             var txList = txs.Where(tx =>
             {
-                if (token.IsCancellationRequested || !Blockchain.VerifyTransaction(tx, time, false)) return false;
+                if (token.IsCancellationRequested || !Blockchain.VerifyTransaction(tx, time, null, false)) return false;
                 tx.TransactionFee = Blockchain.CalculateFee(tx);
                 subsidy += Blockchain.CalculateFee(tx);
                 return true;

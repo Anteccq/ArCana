@@ -112,9 +112,12 @@ namespace ArCana.Blockchain
             }
         }
 
-        public bool CheckInput(Input input, byte[] hash, out Output prevOutTx)
+        public bool VerifyTransaction(Transaction tx, DateTime timestamp, bool isCoinbase, ulong coinbase = 0) 
+            => VerifyTransaction(tx, timestamp, Chain, isCoinbase, coinbase);
+
+        public static bool CheckInput(Input input, byte[] hash, IReadOnlyList<Block> chain, out Output prevOutTx)
         {
-            var transactions = Chain.SelectMany(x => x.Transactions).ToArray();
+            var transactions = chain.SelectMany(x => x.Transactions).ToArray();
             prevOutTx = transactions
                 .First(x => x.Id.Equals(input.TransactionId))?
                 .Outputs[input.OutputIndex];
@@ -129,7 +132,7 @@ namespace ArCana.Blockchain
             return verified && !utxoUsed && redeemable;
         }
 
-        public bool VerifyTransaction(Transaction tx, DateTime timestamp, bool isCoinbase, ulong coinbase = 0)
+        public static bool VerifyTransaction(Transaction tx, DateTime timestamp, IReadOnlyList<Block> chain, bool isCoinbase, ulong coinbase = 0)
         {
             if (tx.TimeStamp > timestamp ||
                 !(isCoinbase ^ tx.Inputs.Count == 0))
@@ -140,7 +143,7 @@ namespace ArCana.Blockchain
             var inSum = coinbase;
             foreach (var input in tx.Inputs)
             {
-                if (CheckInput(input, hash, out var prevOutTx)) return false;
+                if (CheckInput(input, hash, chain, out var prevOutTx)) return false;
                 inSum = checked(inSum + prevOutTx.Amount);
             }
 
