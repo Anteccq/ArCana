@@ -10,7 +10,7 @@ namespace ArCana.Blockchain
 {
     public class Blockchain
     {
-        public List<Block> Chain { get; } = new List<Block>(){ BlockchainUtil.CreateGenesisBlock() };
+        public List<Block> Chain { get; } = new List<Block>();
         public List<TransactionOutput> Utxos { get; } = new List<TransactionOutput>();
         public TransactionPool TransactionPool { get; set; }
         public event Action Applied;
@@ -20,6 +20,7 @@ namespace ArCana.Blockchain
         public Blockchain(TransactionPool transactionPool)
         {
             TransactionPool = transactionPool;
+            BlockVerify(BlockchainUtil.CreateGenesisBlock());
         }
 
         public void BlockVerify(Block block)
@@ -37,6 +38,11 @@ namespace ArCana.Blockchain
 
             lock (Utxos)
             {
+                var inEntries = block.Transactions.SelectMany(x => x.Inputs);
+                Utxos.RemoveAll(x => 
+                        inEntries.Any(inEntry =>
+                            inEntry.OutputIndex == x.OutIndex &&
+                            inEntry.TransactionId.Equals(x.TransactionId)));
                 var utxos = 
                     block.Transactions
                     .Select(x => (x.Outputs, x.Id))
