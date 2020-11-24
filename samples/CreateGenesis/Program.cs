@@ -16,7 +16,7 @@ namespace CreateGenesis
         static void Main(string[] args)
         {
             var time = new DateTime(2020, 10, 31, 1, 50, 0, DateTimeKind.Utc);
-            var tx = BlockchainUtil.CreateCoinBaseTransaction(0, null, time, "Haloween - ArCana");
+            var tx = BlockchainUtil.CreateCoinBaseTransaction(0, null, time, engrave:"Haloween - ArCana");
             tx.TimeStamp = time;
             var txs = new List<Transaction>(){tx};
             var rootHash = HashUtil.ComputeMerkleRootHash(txs.Select(x => x.Id.Bytes).ToList());

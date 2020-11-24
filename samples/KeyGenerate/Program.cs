@@ -22,7 +22,7 @@ namespace KeyGenerate
             WriteByte(key2.PublicKey);
             WriteByte(key2.PublicKeyHash);
 
-            var coinbaseTx = BlockchainUtil.CreateCoinBaseTransaction(0, key.PublicKeyHash, "Test CoinbaseTx");
+            var coinbaseTx = BlockchainUtil.CreateCoinBaseTransaction(0, key.PublicKeyHash, engrave:"Test CoinbaseTx");
             var txbuilder = new TransactionBuilder();
             txbuilder.Inputs.Add(new Input()
             {

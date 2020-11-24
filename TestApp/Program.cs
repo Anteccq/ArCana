@@ -16,7 +16,7 @@ namespace TestApp
             var bobKey = new Key();
 
             //Aliceが50コイン所持しているというトランザクションが必要
-            var coinbaseTx = BlockchainUtil.CreateCoinBaseTransaction(0, aliceKey.PublicKeyHash, "Alice Coin");
+            var coinbaseTx = BlockchainUtil.CreateCoinBaseTransaction(0, aliceKey.PublicKeyHash, engrave:"Alice Coin");
             var txBuilder = new TransactionBuilder();
             txBuilder.Inputs.Add(new Input()
             {
@@ -60,6 +60,10 @@ namespace TestApp
             var blockchain = new Blockchain();
             blockchain.BlockVerify(preBlock);
 
+            var noahKey = new Key();
+
+            var noahCoinbase = BlockchainUtil.CreateCoinBaseTransaction(blockchain.Chain.Count, noahKey.PublicKeyHash);
+            block.Transactions.Insert(0, noahCoinbase);
             foreach (var transaction in block.Transactions)
             {
                 var isVerified = blockchain.VerifyTransaction(transaction, block.Timestamp, false);
@@ -69,12 +73,12 @@ namespace TestApp
 
             if (!Miner.Mine(block, CancellationToken.None)) return;
 
-            //ブロック追加前
             Console.WriteLine("ブロック追加前----------------");
             blockchain.Utxos.ForEach(x => Console.WriteLine($"{x.Output.PublicKeyHash.ToHex()} : {x.Output.Amount}"));
 
+            //ブロック追加
             blockchain.BlockVerify(block);
-            //ブロック追加後
+            
             Console.WriteLine("ブロック追加後----------------");
             blockchain.Utxos.ForEach(x => Console.WriteLine($"{x.Output.PublicKeyHash.ToHex()} : {x.Output.Amount}"));
 
