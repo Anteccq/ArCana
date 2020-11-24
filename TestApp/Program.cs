@@ -40,27 +40,43 @@ namespace TestApp
             var isAliceTx = Signature.Verify(hash, input.Signature, input.PublicKey, coinbaseTx.Outputs[0].PublicKeyHash);
             Console.WriteLine($"Is Alice Tx ? : { isAliceTx}");
 
-            var block = new Block()
+            var preBlock = new Block()
             {
                 Timestamp = DateTime.UtcNow,
                 Transactions = new List<Transaction>() { coinbaseTx },
                 Bits = Difficulty.MinDifficultBits
             };
 
-            var block2 = new Block()
+            var block = new Block()
             {
                 Timestamp = DateTime.UtcNow,
                 Transactions = new List<Transaction>() { tx },
                 Bits = Difficulty.MinDifficultBits
             };
+            preBlock.MerkleRootHash = HashUtil.ComputeMerkleRootHash(preBlock.Transactions);
             block.MerkleRootHash = HashUtil.ComputeMerkleRootHash(block.Transactions);
-            block2.MerkleRootHash = HashUtil.ComputeMerkleRootHash(block2.Transactions);
 
-            Miner.Mine(block, CancellationToken.None);
+            if (!Miner.Mine(preBlock, CancellationToken.None)) return;
             var blockchain = new Blockchain();
-            blockchain.BlockVerify(block);
+            blockchain.BlockVerify(preBlock);
 
-            var ok = blockchain.VerifyTransaction(tx, block2.Timestamp, false);
+            foreach (var transaction in block.Transactions)
+            {
+                var isVerified = blockchain.VerifyTransaction(transaction, block.Timestamp, false);
+                if (!isVerified) return;
+                transaction.TransactionFee = blockchain.CalculateFee(transaction);
+            }
+
+            if (!Miner.Mine(block, CancellationToken.None)) return;
+
+            //ブロック追加前
+            Console.WriteLine("ブロック追加前----------------");
+            blockchain.Utxos.ForEach(x => Console.WriteLine($"{x.Output.PublicKeyHash.ToHex()} : {x.Output.Amount}"));
+
+            blockchain.BlockVerify(block);
+            //ブロック追加後
+            Console.WriteLine("ブロック追加後----------------");
+            blockchain.Utxos.ForEach(x => Console.WriteLine($"{x.Output.PublicKeyHash.ToHex()} : {x.Output.Amount}"));
 
             var target = Difficulty.ToTargetBytes(1);
             Console.WriteLine(target.ToHex());
