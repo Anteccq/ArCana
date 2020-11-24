@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ArCana\ArCana.csproj" />
+    <ProjectReference Include="..\ArCana\ArCana.csproj" />
   </ItemGroup>
 
 </Project>

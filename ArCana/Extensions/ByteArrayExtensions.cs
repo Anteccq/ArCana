@@ -11,6 +11,6 @@ namespace ArCana.Extensions
             => new HexString(data);
 
         public static string ToHex(this byte[] data)
-            => string.Join("", data.Select(x => $"{x:X2}"));
+            => data is null ? "Null" :string.Join("", data.Select(x => $"{x:X2}"));
     }
 }

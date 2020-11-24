@@ -10,7 +10,7 @@ namespace ArCana.Blockchain
 {
     public class Blockchain
     {
-        public List<Block> Chain { get; } = new List<Block>(){ BlockchainUtil.CreateGenesisBlock() };
+        public List<Block> Chain { get; } = new List<Block>();
         public List<TransactionOutput> Utxos { get; } = new List<TransactionOutput>();
         public TransactionPool TransactionPool { get; set; }
         public event Action Applied;
@@ -20,6 +20,7 @@ namespace ArCana.Blockchain
         public Blockchain(TransactionPool transactionPool)
         {
             TransactionPool = transactionPool;
+            BlockVerify(BlockchainUtil.CreateGenesisBlock());
         }
 
         public void BlockVerify(Block block)
@@ -37,6 +38,11 @@ namespace ArCana.Blockchain
 
             lock (Utxos)
             {
+                var inEntries = block.Transactions.SelectMany(x => x.Inputs);
+                Utxos.RemoveAll(x => 
+                        inEntries.Any(inEntry =>
+                            inEntry.OutputIndex == x.OutIndex &&
+                            inEntry.TransactionId.Equals(x.TransactionId)));
                 var utxos = 
                     block.Transactions
                     .Select(x => (x.Outputs, x.Id))
@@ -112,11 +118,14 @@ namespace ArCana.Blockchain
             }
         }
 
-        public bool CheckInput(Input input, byte[] hash, out Output prevOutTx)
+        public bool VerifyTransaction(Transaction tx, DateTime timestamp, bool isCoinbase, out ulong fee, ulong coinbase = 0) 
+            => VerifyTransaction(tx, timestamp, Chain, isCoinbase, out fee, coinbase);
+
+        public static bool CheckInput(Input input, byte[] hash, IReadOnlyList<Block> chain, out Output prevOutTx)
         {
-            var transactions = Chain.SelectMany(x => x.Transactions).ToArray();
+            var transactions = chain.SelectMany(x => x.Transactions).ToArray();
             prevOutTx = transactions
-                .First(x => x.Id.Bytes == input.TransactionId.Bytes)?
+                .First(x => x.Id.Equals(input.TransactionId))?
                 .Outputs[input.OutputIndex];
             var verified = prevOutTx != null && Signature.Verify(hash, input.Signature, input.PublicKey, prevOutTx.PublicKeyHash);
 
@@ -125,14 +134,14 @@ namespace ArCana.Blockchain
 
             var redeemable = prevOutTx != null && prevOutTx.PublicKeyHash.SequenceEqual(HashUtil.Hash160(input.PublicKey));
 
-
             return verified && !utxoUsed && redeemable;
         }
 
-        public bool VerifyTransaction(Transaction tx, DateTime timestamp, bool isCoinbase, ulong coinbase = 0)
+        public static bool VerifyTransaction(Transaction tx, DateTime timestamp, IReadOnlyList<Block> chain, bool isCoinbase, out ulong fee, ulong coinbase = 0)
         {
+            fee = 0;
             if (tx.TimeStamp > timestamp ||
-                !(isCoinbase ^ tx.Inputs.Count == 0))
+                (!isCoinbase & tx.Inputs.Count == 0))
                 return false;
 
             var hash = tx.GetSignHash();
@@ -140,7 +149,7 @@ namespace ArCana.Blockchain
             var inSum = coinbase;
             foreach (var input in tx.Inputs)
             {
-                if (CheckInput(input, hash, out var prevOutTx)) return false;
+                if (!CheckInput(input, hash, chain, out var prevOutTx)) return false;
                 inSum = checked(inSum + prevOutTx.Amount);
             }
 
@@ -155,20 +164,8 @@ namespace ArCana.Blockchain
 
             if (outSum > inSum) return false;
 
+            fee = inSum - outSum;
             return true;
-        }
-
-        public ulong CalculateFee(Transaction tx, ulong coinbase=0)
-        {
-            var chainTxs = Chain.SelectMany(x => x.Transactions);
-            //var outputs = tx.Inputs.Select(x => x.TransactionId).Select(x => chainTxs.First(cTx => cTx.Id.Equals(x)).Outputs);
-            var inSum = tx.Inputs
-                .Select(x => chainTxs.First(cTx => cTx.Id.Equals(x.TransactionId)).Outputs[x.OutputIndex].Amount).Aggregate((a,b) => a + b);
-            inSum += coinbase;
-
-            var outSum = tx.Outputs.Select(x => x.Amount).Aggregate((a, b) => a + b);
-            if(outSum > inSum) throw new ArgumentException();
-            return inSum - outSum;
         }
 
         public bool VerifyBlockchain()
