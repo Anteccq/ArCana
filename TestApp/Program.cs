@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using ArCana.Blockchain;
 using ArCana.Blockchain.Util;
@@ -60,16 +61,18 @@ namespace TestApp
             var blockchain = new Blockchain();
             blockchain.BlockVerify(preBlock);
 
-            var noahKey = new Key();
-
-            var noahCoinbase = BlockchainUtil.CreateCoinBaseTransaction(blockchain.Chain.Count, noahKey.PublicKeyHash);
-            block.Transactions.Insert(0, noahCoinbase);
+            var fee = 0ul;
             foreach (var transaction in block.Transactions)
             {
-                var isVerified = blockchain.VerifyTransaction(transaction, block.Timestamp, false);
+                var isVerified = blockchain.VerifyTransaction(transaction, block.Timestamp, false, out var txFee);
                 if (!isVerified) return;
-                transaction.TransactionFee = blockchain.CalculateFee(transaction);
+                fee += txFee;
             }
+
+            var noahKey = new Key();
+
+            var noahCoinbase = BlockchainUtil.CreateCoinBaseTransaction(blockchain.Chain.Count, noahKey.PublicKeyHash, fee);
+            block.Transactions.Insert(0, noahCoinbase);
 
             if (!Miner.Mine(block, CancellationToken.None)) return;
 
@@ -82,7 +85,7 @@ namespace TestApp
             Console.WriteLine("ブロック追加後----------------");
             blockchain.Utxos.ForEach(x => Console.WriteLine($"{x.Output.PublicKeyHash.ToHex()} : {x.Output.Amount}"));
 
-            var target = Difficulty.ToTargetBytes(1);
+            var target = Difficulty.ToTargetBytes(1);   
             Console.WriteLine(target.ToHex());
             byte[] data;
             ulong nonce = 0;

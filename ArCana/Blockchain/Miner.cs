@@ -65,9 +65,8 @@ namespace ArCana.Blockchain
 
             var txList = txs.Where(tx =>
             {
-                if (token.IsCancellationRequested || !Blockchain.VerifyTransaction(tx, time, false)) return false;
-                tx.TransactionFee = Blockchain.CalculateFee(tx);
-                subsidy += Blockchain.CalculateFee(tx);
+                if (token.IsCancellationRequested || !Blockchain.VerifyTransaction(tx, time, false, out var txFee)) return false;
+                subsidy += txFee;
                 return true;
             }).ToList();
 
@@ -79,8 +78,7 @@ namespace ArCana.Blockchain
             var tb = new TransactionBuilder(new List<Output>(){coinbaseOut}, new List<Input>());
             var coinbaseTx = tb.ToTransaction(time);
 
-            if (!Blockchain.VerifyTransaction(coinbaseTx, time, true, subsidy)) return false;
-            coinbaseTx.TransactionFee = Blockchain.CalculateFee(coinbaseTx, subsidy);
+            if (!Blockchain.VerifyTransaction(coinbaseTx, time, true, out var txFee, subsidy)) return false;
             txList.Insert(0, coinbaseTx);
 
             var txIds = txList.Select(x => x.Id.Bytes).ToList();

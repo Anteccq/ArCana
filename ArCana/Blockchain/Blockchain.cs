@@ -118,8 +118,8 @@ namespace ArCana.Blockchain
             }
         }
 
-        public bool VerifyTransaction(Transaction tx, DateTime timestamp, bool isCoinbase, ulong coinbase = 0) 
-            => VerifyTransaction(tx, timestamp, Chain, isCoinbase, coinbase);
+        public bool VerifyTransaction(Transaction tx, DateTime timestamp, bool isCoinbase, out ulong fee, ulong coinbase = 0) 
+            => VerifyTransaction(tx, timestamp, Chain, isCoinbase, out fee, coinbase);
 
         public static bool CheckInput(Input input, byte[] hash, IReadOnlyList<Block> chain, out Output prevOutTx)
         {
@@ -137,8 +137,9 @@ namespace ArCana.Blockchain
             return verified && !utxoUsed && redeemable;
         }
 
-        public static bool VerifyTransaction(Transaction tx, DateTime timestamp, IReadOnlyList<Block> chain, bool isCoinbase, ulong coinbase = 0)
+        public static bool VerifyTransaction(Transaction tx, DateTime timestamp, IReadOnlyList<Block> chain, bool isCoinbase, out ulong fee, ulong coinbase = 0)
         {
+            fee = 0;
             if (tx.TimeStamp > timestamp ||
                 (!isCoinbase & tx.Inputs.Count == 0))
                 return false;
@@ -163,20 +164,8 @@ namespace ArCana.Blockchain
 
             if (outSum > inSum) return false;
 
+            fee = inSum - outSum;
             return true;
-        }
-
-        public ulong CalculateFee(Transaction tx, ulong coinbase=0)
-        {
-            var chainTxs = Chain.SelectMany(x => x.Transactions);
-            //var outputs = tx.Inputs.Select(x => x.TransactionId).Select(x => chainTxs.First(cTx => cTx.Id.Equals(x)).Outputs);
-            var inSum = tx.Inputs
-                .Select(x => chainTxs.First(cTx => cTx.Id.Equals(x.TransactionId)).Outputs[x.OutputIndex].Amount).Aggregate((a,b) => a + b);
-            inSum += coinbase;
-
-            var outSum = tx.Outputs.Select(x => x.Amount).Aggregate((a, b) => a + b);
-            if(outSum > inSum) throw new ArgumentException();
-            return inSum - outSum;
         }
 
         public bool VerifyBlockchain()
