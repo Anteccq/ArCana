@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using ArCana;
 using ArCana.Blockchain;
@@ -8,6 +9,8 @@ using ArCana.Blockchain.Util;
 using ArCana.Cryptography;
 using ArCana.Extensions;
 using ArCana.Network;
+using ArCana.Network.Messages;
+using Utf8Json;
 
 namespace TestApp
 {
@@ -128,6 +131,56 @@ namespace TestApp
                     .Aggregate((a, b) => a + b);
 
             Console.WriteLine($"Alice : {coinSum2} coin");
+
+            var noahCoin =
+                blockchain.Utxos
+                    .First(x => 
+                        x.Output.PublicKeyHash?
+                            .SequenceEqual(noahKey.PublicKeyHash) ?? false);
+
+            var noahInput = new Input()
+            {
+                OutputIndex = noahCoin.OutIndex,
+                TransactionId = noahCoin.TransactionId
+            };
+
+            var noahAmount = noahCoin.Output.Amount;
+
+            var toAliceOutput = new Output()
+            {
+                PublicKeyHash = alicePkh,
+                Amount = noahAmount / 2
+            };
+
+            var toNoahOutput = new Output()
+            {
+                PublicKeyHash = noahKey.PublicKeyHash,
+                Amount = noahAmount - toAliceOutput.Amount
+            };
+
+            var tb = new TransactionBuilder();
+            tb.Inputs.Add(noahInput);   
+            tb.Outputs.Add(toAliceOutput);
+            tb.Outputs.Add(toNoahOutput);
+            var noahTx = tb.ToSignedTransaction(noahKey.PrivateKey, noahKey.PublicKey);
+
+            var node1 = new Server(new CancellationTokenSource());
+            var node2 = new Server(new CancellationTokenSource());
+            node1.StartAsync(50001).GetAwaiter().GetResult();
+            node2.StartAsync(50002).GetAwaiter().GetResult();
+            node2.MessageReceived += async (msg, ip) =>
+            {
+                var newTx = JsonSerializer.Deserialize<NewTransaction>(msg.Payload).Transaction;
+                Console.WriteLine($"New Transaction! : {newTx.Id.String}");
+            };
+
+            var localhost = IPAddress.Parse("127.0.0.1");
+
+            var txMessage = new NewTransaction() {Transaction = noahTx};
+            txMessage.ToMessage()
+                .SendAsync(localhost, 50002, 50001).GetAwaiter().GetResult();
+
+            Console.ReadKey();
 
             var target = Difficulty.ToTargetBytes(1);   
             Console.WriteLine(target.ToHex());
