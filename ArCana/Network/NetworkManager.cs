@@ -44,7 +44,6 @@ namespace ArCana.Network
             if(!_server.IsOpen) throw new SocketException();
             await new HandShake()
                 {
-                    Port = Port,
                     KnowIpEndPoints = new List<string>()
                 }
                 .ToMessage().SendAsync(endPoint, Port);

@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using ArCana;
 using ArCana.Blockchain;
 using ArCana.Blockchain.Util;
 using ArCana.Cryptography;
 using ArCana.Extensions;
+using ArCana.Network;
 
 namespace TestApp
 {
@@ -85,6 +87,48 @@ namespace TestApp
             Console.WriteLine("ブロック追加後----------------");
             blockchain.Utxos.ForEach(x => Console.WriteLine($"{x.Output.PublicKeyHash.ToHex()} : {x.Output.Amount}"));
 
+            var inputs =
+                blockchain.Chain
+                    .SelectMany(x => x.Transactions)
+                    .SelectMany(x => x.Inputs);
+
+            var outputs =
+                blockchain.Chain
+                    .SelectMany(x => x.Transactions)
+                    .Select(x => (x.Outputs, x.Id))
+                    .SelectMany(x => ToTxO(x.Outputs, x.Id));
+
+            var utxo =
+                outputs.Where(opt =>
+                    !inputs.Any(ipt =>
+                        ipt.OutputIndex == opt.OutIndex &&
+                        ipt.TransactionId.Equals(opt.TransactionId)));
+
+            var alicePkh = aliceKey.PublicKeyHash;
+
+            var aliceUtxo =
+                utxo.Select(x => x.Output)
+                    .Where(x => x.PublicKeyHash?.SequenceEqual(alicePkh) ?? false)
+                    .ToList();
+
+            var coinSum =
+                aliceUtxo
+                    .Select(x => x.Amount)
+                    .Aggregate((a,b) => a+b);
+
+            Console.WriteLine($"Alice : {coinSum} coin");
+
+            //念のためにUTXOを最新にする。
+            blockchain.UpdateUtxos();
+
+            var coinSum2 =
+                blockchain.Utxos
+                    .Where(x => x.Output.PublicKeyHash?.SequenceEqual(alicePkh) ?? false)
+                    .Select(x => x.Output.Amount)
+                    .Aggregate((a, b) => a + b);
+
+            Console.WriteLine($"Alice : {coinSum2} coin");
+
             var target = Difficulty.ToTargetBytes(1);   
             Console.WriteLine(target.ToHex());
             byte[] data;
@@ -94,6 +138,21 @@ namespace TestApp
                 data = HashUtil.DoubleSHA256Hash(BitConverter.GetBytes(nonce++));
                 Console.WriteLine(data.ToHex());
             } while (!Miner.HashCheck(data, target));
+
+            var aliceNm = new NetworkManager(CancellationToken.None);
+            var bobNm = new NetworkManager(CancellationToken.None);
+            aliceNm.StartServerAsync(50005).GetAwaiter().GetResult();
+            bobNm.StartServerAsync(50006).GetAwaiter().GetResult();
+        }
+
+        static IEnumerable<TransactionOutput> ToTxO(List<Output> outputs, HexString id)
+        {
+            return outputs.Select((t, i) => new TransactionOutput()
+            {
+                TransactionId = id,
+                OutIndex = i,
+                Output = t,
+            });
         }
     }
 }
