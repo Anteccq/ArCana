@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ArCana.Extensions;
+﻿using ArCana.Extensions;
 using MessagePack;
+using System;
+using System.Linq;
 
 namespace ArCana
 {

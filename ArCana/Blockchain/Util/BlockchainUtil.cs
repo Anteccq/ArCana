@@ -1,10 +1,7 @@
-﻿using System;
+﻿using ArCana.Cryptography;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using ArCana.Cryptography;
-using Utf8Json;
-using static Utf8Json.JsonSerializer;
 
 namespace ArCana.Blockchain.Util
 {

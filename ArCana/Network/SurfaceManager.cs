@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using ArCana.Network.Messages;
+using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ArCana.Network.Messages;
 
 namespace ArCana.Network
 {

@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using ArCana.Cryptography;
 using System.Text;
-using ArCana.Cryptography;
 using Xunit;
 
 namespace ArCana.Test
