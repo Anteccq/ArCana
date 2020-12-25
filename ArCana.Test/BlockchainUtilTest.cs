@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ArCana.Blockchain;
+﻿using ArCana.Blockchain;
 using ArCana.Blockchain.Util;
 using ArCana.Extensions;
+using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace ArCana.Test

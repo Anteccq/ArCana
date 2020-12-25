@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ArCana.Blockchain.Util;
+﻿using ArCana.Blockchain.Util;
 using ArCana.Cryptography;
-using Org.BouncyCastle.Utilities.Encoders;
-using Utf8Json;
+using System;
+using System.Collections.Generic;
 using static Utf8Json.JsonSerializer;
 
 namespace ArCana.Blockchain

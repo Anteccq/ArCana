@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using ArCana;
+﻿using ArCana;
 using ArCana.Blockchain;
 using ArCana.Blockchain.Util;
 using ArCana.Cryptography;
 using ArCana.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using static Utf8Json.JsonSerializer;
 
 namespace CreateGenesis

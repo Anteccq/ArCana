@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ArCana.Network.Messages
+﻿namespace ArCana.Network.Messages
 {
     public enum MessageType : byte
     {
