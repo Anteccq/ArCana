@@ -1,12 +1,9 @@
-﻿using System;
+﻿using ArCana.Network.Messages;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
-using ArCana.Network;
-using ArCana.Network.Messages;
 using static Utf8Json.JsonSerializer;
 
 namespace ArCana.Blockchain

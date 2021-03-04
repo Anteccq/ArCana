@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
+using ArCana;
 using ArCana.Blockchain;
 using ArCana.Blockchain.Util;
 using ArCana.Cryptography;
 using ArCana.Extensions;
+using ArCana.Network;
+using ArCana.Network.Messages;
+using Utf8Json;
 
 namespace TestApp
 {
@@ -85,6 +90,98 @@ namespace TestApp
             Console.WriteLine("ブロック追加後----------------");
             blockchain.Utxos.ForEach(x => Console.WriteLine($"{x.Output.PublicKeyHash.ToHex()} : {x.Output.Amount}"));
 
+            var inputs =
+                blockchain.Chain
+                    .SelectMany(x => x.Transactions)
+                    .SelectMany(x => x.Inputs);
+
+            var outputs =
+                blockchain.Chain
+                    .SelectMany(x => x.Transactions)
+                    .Select(x => (x.Outputs, x.Id))
+                    .SelectMany(x => ToTxO(x.Outputs, x.Id));
+
+            var utxo =
+                outputs.Where(opt =>
+                    !inputs.Any(ipt =>
+                        ipt.OutputIndex == opt.OutIndex &&
+                        ipt.TransactionId.Equals(opt.TransactionId)));
+
+            var alicePkh = aliceKey.PublicKeyHash;
+
+            var aliceUtxo =
+                utxo.Select(x => x.Output)
+                    .Where(x => x.PublicKeyHash?.SequenceEqual(alicePkh) ?? false)
+                    .ToList();
+
+            var coinSum =
+                aliceUtxo
+                    .Select(x => x.Amount)
+                    .Aggregate((a,b) => a+b);
+
+            Console.WriteLine($"Alice : {coinSum} coin");
+
+            //念のためにUTXOを最新にする。
+            blockchain.UpdateUtxos();
+
+            var coinSum2 =
+                blockchain.Utxos
+                    .Where(x => x.Output.PublicKeyHash?.SequenceEqual(alicePkh) ?? false)
+                    .Select(x => x.Output.Amount)
+                    .Aggregate((a, b) => a + b);
+
+            Console.WriteLine($"Alice : {coinSum2} coin");
+
+            var noahCoin =
+                blockchain.Utxos
+                    .First(x => 
+                        x.Output.PublicKeyHash?
+                            .SequenceEqual(noahKey.PublicKeyHash) ?? false);
+
+            var noahInput = new Input()
+            {
+                OutputIndex = noahCoin.OutIndex,
+                TransactionId = noahCoin.TransactionId
+            };
+
+            var noahAmount = noahCoin.Output.Amount;
+
+            var toAliceOutput = new Output()
+            {
+                PublicKeyHash = alicePkh,
+                Amount = noahAmount / 2
+            };
+
+            var toNoahOutput = new Output()
+            {
+                PublicKeyHash = noahKey.PublicKeyHash,
+                Amount = noahAmount - toAliceOutput.Amount
+            };
+
+            var tb = new TransactionBuilder();
+            tb.Inputs.Add(noahInput);   
+            tb.Outputs.Add(toAliceOutput);
+            tb.Outputs.Add(toNoahOutput);
+            var noahTx = tb.ToSignedTransaction(noahKey.PrivateKey, noahKey.PublicKey);
+
+            var node1 = new Server(new CancellationTokenSource());
+            var node2 = new Server(new CancellationTokenSource());
+            node1.StartAsync(50001).GetAwaiter().GetResult();
+            node2.StartAsync(50002).GetAwaiter().GetResult();
+            node2.MessageReceived += async (msg, ip) =>
+            {
+                var newTx = JsonSerializer.Deserialize<NewTransaction>(msg.Payload).Transaction;
+                Console.WriteLine($"New Transaction! : {newTx.Id.String}");
+            };
+
+            var localhost = IPAddress.Parse("127.0.0.1");
+
+            var txMessage = new NewTransaction() {Transaction = noahTx};
+            txMessage.ToMessage()
+                .SendAsync(localhost, 50002, 50001).GetAwaiter().GetResult();
+
+            Console.ReadKey();
+
             var target = Difficulty.ToTargetBytes(1);   
             Console.WriteLine(target.ToHex());
             byte[] data;
@@ -94,6 +191,21 @@ namespace TestApp
                 data = HashUtil.DoubleSHA256Hash(BitConverter.GetBytes(nonce++));
                 Console.WriteLine(data.ToHex());
             } while (!Miner.HashCheck(data, target));
+
+            var aliceNm = new NetworkManager(CancellationToken.None);
+            var bobNm = new NetworkManager(CancellationToken.None);
+            aliceNm.StartServerAsync(50005).GetAwaiter().GetResult();
+            bobNm.StartServerAsync(50006).GetAwaiter().GetResult();
+        }
+
+        static IEnumerable<TransactionOutput> ToTxO(List<Output> outputs, HexString id)
+        {
+            return outputs.Select((t, i) => new TransactionOutput()
+            {
+                TransactionId = id,
+                OutIndex = i,
+                Output = t,
+            });
         }
     }
 }

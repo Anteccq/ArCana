@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using ArCana.Blockchain.Util;
+﻿using ArCana.Blockchain.Util;
 using ArCana.Cryptography;
 using ArCana.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using static Utf8Json.JsonSerializer;
 
 namespace ArCana.Blockchain

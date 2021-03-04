@@ -1,9 +1,7 @@
-﻿using System;
+﻿using ArCana.Blockchain;
+using Org.BouncyCastle.Crypto.Digests;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using ArCana.Blockchain;
-using Org.BouncyCastle.Crypto.Digests;
 
 namespace ArCana.Cryptography
 {

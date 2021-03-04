@@ -1,13 +1,12 @@
-﻿using System;
+﻿using ArCana.Blockchain;
+using ArCana.Network.Messages;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ArCana.Blockchain;
-using ArCana.Network.Messages;
 using static Utf8Json.JsonSerializer;
 
 namespace ArCana.Network
@@ -44,7 +43,6 @@ namespace ArCana.Network
             if(!_server.IsOpen) throw new SocketException();
             await new HandShake()
                 {
-                    Port = Port,
                     KnowIpEndPoints = new List<string>()
                 }
                 .ToMessage().SendAsync(endPoint, Port);
